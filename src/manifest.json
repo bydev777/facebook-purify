@@ -6,15 +6,19 @@
   "icons": {
     "16": "assets/images/icon16.png",
     "32": "assets/images/icon32.png",
-    "48": "assets/images/icon48.png",
-    "128": "assets/images/icon128.png"
+    "48": "assets/images/icon48.png"
   },
     "content_scripts": [
     {
-      "matches": ["*://*.facebook.com/*"],
-      "js": ["main.js"]
+      "matches": ["*://*.facebook.com/"],
+      "js": ["main.js",  "browser-polyfill.js"]
     }
   ],
+  "background": {
+    "scripts": [
+      "browser-polyfill.js"
+    ]
+  },
   "browser_action": {
     "browser_style": true,
     "default_icon": {

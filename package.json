@@ -4,7 +4,11 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "start": "web-ext run --source-dir ./src",
+    "start:c": "web-ext run -t chromium --source-dir ./src",
+    "lint": "web-ext lint --source-dir ./src",
+    "sign": "web-ext sign --source-dir ./src",
+    "build": "web-ext build --source-dir ./src"
   },
   "repository": {
     "type": "git",
@@ -15,5 +19,9 @@
   "bugs": {
     "url": "https://github.com/thogtq/facebook-purify/issues"
   },
-  "homepage": "https://github.com/thogtq/facebook-purify#readme"
+  "homepage": "https://github.com/thogtq/facebook-purify#readme",
+  "devDependencies": {
+    "web-ext": "^7.5.0",
+    "webextension-polyfill": "^0.10.0"
+  }
 }
