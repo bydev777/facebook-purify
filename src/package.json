@@ -1,0 +1,11 @@
+{
+  "name": "facebook-purify-ext",
+  "version": "1.0.0",
+  "description": "Facebook purify content",
+  "main": "main.js",
+  "scripts": {
+    "test": "web-ext run --source-dir ./"
+  },
+  "author": "thongtran1100@gmail.com",
+  "license": "ISC"
+}

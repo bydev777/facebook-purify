@@ -1,0 +1,31 @@
+{
+  "name": "facebook-purify",
+  "version": "0.0.1",
+  "description": "Purify facebook content",
+  "manifest_version": 2,
+  "icons": {
+    "16": "assets/images/icon16.png",
+    "32": "assets/images/icon32.png",
+    "48": "assets/images/icon48.png",
+    "128": "assets/images/icon128.png"
+  },
+    "content_scripts": [
+    {
+      "matches": ["*://*.facebook.com/*"],
+      "js": ["main.js"]
+    }
+  ],
+  "browser_action": {
+    "browser_style": true,
+    "default_icon": {
+      "16": "assets/images/icon16.png",
+      "32": "assets/images/icon32.png",
+      "48":  "assets/images/icon48.png"
+    },
+    "default_title": "Facebook-purify",
+    "default_popup": "popup.html"
+  },
+  "permissions": [
+    "storage"
+  ]
+}
