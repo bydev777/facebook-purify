@@ -1,8 +1,8 @@
 {
   "name": "facebook-purify",
-  "version": "0.0.1",
+  "version": "0.0.2",
   "description": "Purify facebook content",
-  "manifest_version": 2,
+  "manifest_version": 3,
   "icons": {
     "16": "assets/images/icon16.png",
     "32": "assets/images/icon32.png",
@@ -14,22 +14,15 @@
       "js": ["main.js",  "browser-polyfill.js"]
     }
   ],
-  "background": {
-    "scripts": [
-      "browser-polyfill.js"
-    ]
-  },
-  "browser_action": {
-    "browser_style": true,
-    "default_icon": {
-      "16": "assets/images/icon16.png",
-      "32": "assets/images/icon32.png",
-      "48":  "assets/images/icon48.png"
-    },
-    "default_title": "Facebook-purify",
+  "action": {
     "default_popup": "popup.html"
   },
   "permissions": [
     "storage"
-  ]
+  ],
+  "browser_specific_settings": {
+    "gecko": {
+      "id": "facebookpurify@thogtq.com"
+             }
+  }
 }
