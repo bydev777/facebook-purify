@@ -4,21 +4,47 @@
   <meta charset="UTF-8">
   <meta http-equiv="X-UA-Compatible" content="IE=edge">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <script type="application/javascript" src=""></script>
-  <script type="application/javascript" src="popup.js"></script>
+  <script type="application/javascript" src="browser-polyfill.js"></script>
   <style>
     body {
-      padding: 8px;
+      padding: 16px;
+      min-width: 200px;
     }
 
-    .word {
-      color: red;
-      font-weight: bold;
+    .flex-row {
+      display: flex;
+      flex-direction: row;
+      margin-bottom: 4px;
+    }
+
+    input {
+      margin-right: 4px;
+    }
+
+    label {
       font-size: 14px;
+    }
+
+    .flex-col {
+      display: flex;
+      flex-direction: column;
     }
     </style>
 </head>
 <body>
-  <p class="word">Hello AE chuối!</p>
+  <div class="flex-col">
+    <div class="flex-row">
+      <input id="removeSuggestionPosts" type="checkbox" value="false" /><label for="removeSuggestionPosts">Remove suggestion posts</label>
+    </div>
+    <div class="flex-row">
+      <input id ="removeSponsoredPosts" type="checkbox" value="false" /><label for="removeSponsoredPosts">Remove sponsored posts</label>
+    </div>
+    <div class="flex-row">
+      <input id="autoLike" type="checkbox" value="false" /><label for="autoLike">Auto like friend posts</label>
+    </div>
+  </div>
+  <div id="logs"></div>
+  <!------------------------------------------------------------------------>
+  <script type="application/javascript" src="popup.js"></script>
 </body>
 </html>

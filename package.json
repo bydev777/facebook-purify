@@ -4,10 +4,10 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "start": "web-ext run --source-dir ./src",
-    "start:c": "web-ext run -t chromium --source-dir ./src",
+    "start": "web-ext run --source-dir ./src --verbose",
+    "start:c": "web-ext run -t chromium --source-dir ./src --verbose",
     "lint": "web-ext lint --source-dir ./src",
-    "sign": "web-ext sign --source-dir ./src",
+    "sign": "web-ext sign --source-dir ./src --api-key  --api-secret",
     "build": "web-ext build --source-dir ./src"
   },
   "repository": {
