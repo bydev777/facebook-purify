@@ -1,6 +1,6 @@
 {
   "name": "facebook-purify",
-  "version": "1.0.2",
+  "version": "1.0.3",
   "description": "Purify facebook content",
   "manifest_version": 3,
   "icons": {
@@ -22,7 +22,7 @@
   ],
   "browser_specific_settings": {
     "gecko": {
-      "id": "facebookpurify@thogtq.com"
+      "id": "{b14a5f72-e301-47af-aa94-60bc038d7769}"
              }
   }
 }

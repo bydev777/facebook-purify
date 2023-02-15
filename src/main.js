@@ -1,5 +1,6 @@
 const canRun = window.location.href.split("/")[3] === "";
 var timer = null;
+var likeTimer = null;
 var totalSugRemoved = 0;
 var totalSponRemoved = 0;
 const LIKE_LIMIT = 200;
@@ -287,6 +288,7 @@ const processLiked = (liked) => {
 };
 
 const likeFriendPosts = async () => {
+  console.log("facebook-purify:", "LFP scanning...");
   const objectElements = document.getElementsByTagName("object");
   const profileObjects = getProfileObjects(objectElements);
   const btns = await getLikeBtnsFromObj(profileObjects);
@@ -302,7 +304,7 @@ const likeFriendPosts = async () => {
 
   for (let i = 0; i < btns.length; i++) {
     const btn = btns[i];
-    const timeout = randomNum(1200, 4000);
+    const timeout = randomNum(1500, 3000);
     setTimeout(() => {
       btn.click();
     }, timeout);
@@ -340,7 +342,7 @@ const scanHTMLATags = (
   isSug = false,
   isSpon = false,
   isAuto = false,
-  isSub = false
+  skipAuto = false,
 ) => {
   if (!isAuto) {
     const btns = document.querySelectorAll('button[name="FBATLIKE"]');
@@ -350,26 +352,21 @@ const scanHTMLATags = (
   }
   if (!isSug && !isSpon && !isAuto) return;
 
-  console.log("facebook-purify:", "scanning");
-  const aTags = document.getElementsByTagName("a");
-  const nodes = categorizeNodes(aTags, isSug, isSpon);
+  if (isSpon || isSug) {
+    console.log("facebook-purify:", "SP SU scanning...");
+    const aTags = document.getElementsByTagName("a");
+    const nodes = categorizeNodes(aTags, isSug, isSpon);
+    if (isSug) {
+      removeSuggestionPosts(nodes.sug);
+    }
+    if (isSpon) {
+      removeSponsoredPosts(nodes.spon);
+    }
+  }
 
-  if (isSug) {
-    removeSuggestionPosts(nodes.sug);
-  }
-  if (isSpon) {
-    removeSponsoredPosts(nodes.spon);
-  }
-  if (isAuto && !isSub) {
+  if (isAuto && !skipAuto) {
     likeFriendPosts();
   }
-};
-
-const startTimer = (timeout) => {
-  timer = setTimeout(() => {
-    clearTimeout(timer);
-    timer = null;
-  }, timeout);
 };
 
 const setValue = (key, value) => {
@@ -383,17 +380,38 @@ const getValue = async (key) => {
   return data[key];
 };
 
+const startLikeTimer = (timeout) => {
+  likeTimer = setTimeout(() => {
+    clearTimeout(likeTimer);
+    likeTimer = null;
+  }, timeout);
+};
+
+
+const startTimer = (timeout) => {
+  timer = setTimeout(() => {
+    clearTimeout(timer);
+    timer = null;
+  }, timeout);
+};
+
 addEventListener("wheel", async () => {
   const isSug = await getValue("removeSuggestionPosts");
   const isSpon = await getValue("removeSponsoredPosts");
   const isAuto = await getValue("autoLike");
   const timeout = 2200;
+  const likeTimeout = 3800;
 
   if (!timer) {
     startTimer(timeout);
     scanHTMLATags(isSug, isSpon, isAuto, true);
     setTimeout(() => {
-      scanHTMLATags(isSug, isSpon, isAuto, false);
+      scanHTMLATags(isSug, isSpon, isAuto, true);
     }, 1800);
+  }
+
+  if (!likeTimer) {
+    startLikeTimer(likeTimeout);
+    scanHTMLATags(false, false, isAuto, false);
   }
 });
