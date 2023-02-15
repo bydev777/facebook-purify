@@ -1,7 +1,12 @@
+const LIKE_LIMIT = 200;
 const inputSugg = document.getElementById("removeSuggestionPosts");
 const inputSpon = document.getElementById("removeSponsoredPosts");
 const inputAutoLike = document.getElementById("autoLike");
 const logs = document.getElementById("logs");
+const autoLikeListPre = document.getElementById("autoLikeList");
+const btnViewAutoLikeList = document.getElementById("viewAutoLikeList");
+const currentLikes = document.getElementById("currentLikes");
+autoLikeListPre.style.visibility = "hidden";
 
 const log = (text) => {
   const child = document.createElement("pre");
@@ -20,6 +25,18 @@ const init = async () => {
   }
   inputSpon.checked = await getValue("removeSponsoredPosts");
   inputAutoLike.checked = await getValue("autoLike");
+  const liked = await getValue("liked");
+  if (liked && liked.includes(",")) {
+    const val = liked.split(",")[1];
+    currentLikes.innerText = val + "/" + LIKE_LIMIT + " likes ";
+    if (val == LIKE_LIMIT.toString()) {
+      const child = document.createElement("span");
+      child.style.color = "red";
+      child.style.fontWeight = "bold";
+      child.innerText = "(Limit exceeded!. Come back tomorrow!)";
+      currentLikes.appendChild(child);
+    }
+  }
 };
 
 const setValue = (key, value) => {
@@ -33,6 +50,19 @@ const getValue = async (key) => {
   return data[key];
 };
 
+const getAutoLikeList = async () => {
+  let list = await getValue("autoLikeList");
+  if (list) {
+    return list.split(",").filter((item) => item !== "");
+  } else {
+    return [];
+  }
+};
+
+const removeAutoLikeList = async () => {
+  await setValue("autoLikeList", null);
+};
+
 inputSugg.addEventListener("change", async () => {
   await setValue("removeSuggestionPosts", inputSugg.checked);
 });
@@ -42,6 +72,26 @@ inputSpon.addEventListener("change", async () => {
 inputAutoLike.addEventListener("change", async () => {
   await setValue("autoLike", inputAutoLike.checked);
 });
+btnViewAutoLikeList.addEventListener("click", async () => {
+  autoLikeListPre.style.visibility = "visible";
+  btnViewAutoLikeList.style.visibility = "hidden";
+  inner = "";
+  listArr = await getAutoLikeList();
+  listArr.forEach((item) => {
+    const pEle = document.createElement('p')
+    pEle.innerText = item;
+    autoLikeListPre.appendChild(pEle);
+  });
 
-init().catch(e => log(e))
+  if (btnViewAutoLikeList.lastChild.tagName !== "BUTTON" && listArr.length) {
+    const removeAllBtn = document.createElement("button");
+    removeAllBtn.innerText = "Remove All";
+    removeAllBtn.addEventListener("click", async () => {
+      await removeAutoLikeList();
+      autoLikeListPre.innerHTML = "";
+    });
+    autoLikeListPre.appendChild(removeAllBtn);
+  }
+});
 
+init().catch((e) => log(e));

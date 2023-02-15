@@ -2,7 +2,7 @@ const canRun = window.location.href.split("/")[3] === "";
 var timer = null;
 var totalSugRemoved = 0;
 var totalSponRemoved = 0;
-
+const LIKE_LIMIT = 200;
 const getChildSpanTag = (node) => {
   if (node === null) {
     return null;
@@ -25,6 +25,14 @@ const getSecondParentEmptyDiv = (node, times = 1) => {
   return getSecondParentEmptyDiv(node.parentElement, times);
 };
 
+const getFirstParentEmptyDiv = (node) => {
+  if (node === null) return null;
+  if (node.tagName === "DIV" && node.className === "") {
+    return node;
+  }
+  return getFirstParentEmptyDiv(node.parentElement);
+};
+
 // @param data - children of <div class="">
 const isContainsSuggestion = (data) => {
   for (let i = 0; i < data.length; i++) {
@@ -43,7 +51,7 @@ const isContainsSuggestion = (data) => {
 
 // @param data - HTML collection of <a> tag
 // @return {Object} result - { sug, spon }
-var categorizeNodes = (data, isSug = false, isSpon = false, isAuto = false) => {
+var categorizeNodes = (data, isSug = false, isSpon = false) => {
   var sug = [];
   var spon = [];
   for (let i = 0; i < data.length; i++) {
@@ -68,7 +76,7 @@ var removeSuggestionPosts = (data) => {
     let postParent =
       data[i].parentElement.parentElement.parentElement.parentElement;
     if (isContainsSuggestion(postParent.firstChild.children)) {
-      postParent.remove();
+      postParent.parentElement.remove();
       // postParent.style.border = '1px solid red';
       count++;
       totalSugRemoved++;
@@ -91,7 +99,7 @@ const removeSponsoredPosts = (nodes) => {
   var count = 0;
   for (let i = 0; i < nodes.length; i++) {
     const target = getSecondParentEmptyDiv(nodes[i]);
-    target.remove();
+    target.parentElement.remove();
     // target.style.border = "1px solid red";
     totalSponRemoved++;
     count++;
@@ -108,41 +116,211 @@ const removeSponsoredPosts = (nodes) => {
   }
 };
 
-// links: array of <a> tag
-const getLikeBtnsFromObj = (objs) => {
-  var btns = [];
-  objs.forEach((obj) => {
-    const post = getSecondParentEmptyDiv(obj);
-    if (post.firstChild.tagName !== "BUTTON") {
-      const child = document.createElement("button");
-      child.setAttribute("name", "FBATLIKE");
-      child.value = obj.firstChild.href;
-      child.innerText = "Auto Like This Friend";
-      post.prepend(child);
-    }
-    if (!post.lastChild.firstChild.firstChild.firstChild) {
-      return;
-    }
-    const children =
-      post.lastChild.firstChild.firstChild.firstChild.firstChild.children;
-    const btn =
-      children.length === 1
-        ? children[0].firstChild.firstChild.firstChild
-        : children[1].firstChild.firstChild.firstChild;
-    if (btn.style.transform !== "none") {
-      btns.push(btn);
-    }
-  });
-  return btns;
+const getAutoLikeList = async () => {
+  let list = await getValue("autoLikeList");
+  if (list) {
+    return list.split(",").filter((item) => item !== "");
+  } else {
+    return [];
+  }
 };
 
-const likeFriendPosts = () => {
+const appendToAutoLikeList = async (value) => {
+  let listArr = await getAutoLikeList();
+  if (listArr.includes(value)) {
+    return;
+  }
+  listArr.push(value);
+  await setValue("autoLikeList", listArr.join(","));
+};
+
+const removeFromAutoLikeList = async (value) => {
+  let listArr = await getAutoLikeList();
+  if (listArr.includes(value)) {
+    listArr = listArr.filter((item) => item !== value);
+    await setValue("autoLikeList", listArr.join(","));
+  }
+};
+
+const parseIdFromFBLink = (link) => {
+  if (!link) {
+    return "";
+  }
+  if (link.includes("/profile")) {
+    let p1 = link.indexOf("id=");
+    let p2 = link.indexOf("&");
+    link = link.substring(p1 + 3, p2);
+  } else {
+    let p1 = link.indexOf(".com/");
+    let p2 = link.indexOf("?");
+    link = link.substring(p1 + 5, p2);
+  }
+  link = link.replace("/", "");
+  return link;
+};
+
+getFirstChildATag = (node) => {
+  if (node === null) return null;
+  if (node.tagName === "A") {
+    return node;
+  }
+  return getFirstChildATag(node.firstChild);
+};
+
+getRealProfileLink = (objectNode) => {
+  const group = getFirstParentEmptyDiv(objectNode);
+  if (group) {
+    if (group.firstChild.children.length < 2) {
+      return "";
+    }
+    const aTag = getFirstChildATag(group.firstChild.children[1]);
+    if (!aTag) {
+      return "";
+    }
+    return aTag.href;
+  } else {
+    return "";
+  }
+};
+
+// links: array of <a> tag
+const getLikeBtnsFromObj = async (objs) => {
+  var results = [];
+
+  for (let i = 0; i < objs.length; i++) {
+    let obj = objs[i];
+    let canGo = true;
+    const post = getSecondParentEmptyDiv(obj);
+    const profileLink = getRealProfileLink(obj);
+    const id = parseIdFromFBLink(profileLink);
+    const listArr = await getAutoLikeList();
+
+    if (post.parentElement.firstChild.tagName !== "BUTTON") {
+      const removeF = () => {
+        const child = document.createElement("button");
+        child.setAttribute("name", "FBATLIKE");
+        child.value = obj.firstChild.href;
+        child.innerText = "Remove Auto Like This Friend";
+        child.addEventListener("click", async () => {
+          const value = id;
+          await removeFromAutoLikeList(value);
+          child.remove();
+          addF();
+        });
+        post.parentElement.prepend(child);
+        canGo = true;
+      };
+
+      const addF = () => {
+        const child = document.createElement("button");
+        child.setAttribute("name", "FBATLIKE");
+        child.value = obj.firstChild.href;
+        child.innerText = "Auto Like This Friend";
+        child.addEventListener("click", async () => {
+          const value = id;
+          await appendToAutoLikeList(value);
+          child.remove();
+          removeF();
+        });
+        post.parentElement.prepend(child);
+        canGo = false;
+      };
+
+      if (!listArr.includes(id)) {
+        addF();
+      } else {
+        removeF();
+      }
+    } else {
+      if (!listArr.includes(id)) {
+        canGo = false;
+      }
+    }
+
+    if (post.lastChild.firstChild.firstChild.firstChild && canGo) {
+      const children =
+        post.lastChild.firstChild.firstChild.firstChild.firstChild.children;
+      const btn =
+        children.length === 1
+          ? children[0].firstChild.firstChild.firstChild
+          : children[1].firstChild.firstChild.firstChild;
+
+      const likeLabel = ["Like", "Thích"];
+      if (
+        btn.style.transform !== "none" &&
+        btn.tagName === "DIV" &&
+        likeLabel.includes(btn.getAttribute("aria-label"))
+      ) {
+        results.push(btn);
+      }
+    }
+  }
+
+  return results;
+};
+
+const randomNum = (min, max) => {
+  return Math.floor(Math.random() * (max - min) + min);
+};
+
+// 24,222: dayofmonth,liked
+// returns arr [dayofmon, liked]
+const processLiked = (liked) => {
+  const today = new Date().getDate();
+  if (!liked) {
+    return [today.toString(), "0"];
+  }
+  const parsed = liked.split(",");
+
+  if (!liked || !parsed[0] || !parsed[1]) {
+    return [today.toString(), "0"];
+  }
+  if (today.toString() !== parsed[0]) {
+    return [today.toString(), "0"];
+  } else {
+    const intParsed1 = parseInt(parsed[1]);
+    if (intParsed1 < LIKE_LIMIT) {
+      return [today.toString(), parsed[1]];
+    }
+    return null;
+  }
+};
+
+const likeFriendPosts = async () => {
   const objectElements = document.getElementsByTagName("object");
   const profileObjects = getProfileObjects(objectElements);
-  const btns = getLikeBtnsFromObj(profileObjects);
-  btns.forEach((btn) => {
-    btn.style.border = "1px solid red";
-  });
+  const btns = await getLikeBtnsFromObj(profileObjects);
+  const liked = await getValue("liked");
+  const newLiked = processLiked(liked);
+
+  if (!newLiked) {
+    console.log("facebook-purify:", "Likes limit exceed!");
+    return;
+  }
+
+  let count = 0;
+
+  for (let i = 0; i < btns.length; i++) {
+    const btn = btns[i];
+    const timeout = randomNum(1200, 4000);
+    setTimeout(() => {
+      btn.click();
+    }, timeout);
+    count++;
+  }
+  const total = parseInt(newLiked[1]) + count;
+  newLiked[1] = total.toString();
+  await setValue("liked", newLiked.join(","));
+  if (count) {
+    console.log(
+      "facebook-purify:",
+      "Liked ",
+      total,
+      "/",
+      LIKE_LIMIT,
+      " friend posts"
+    );
+  }
 };
 
 const getProfileObjects = (objectElements) => {
@@ -150,8 +328,7 @@ const getProfileObjects = (objectElements) => {
   for (let i = 0; i < objectElements.length; i++) {
     if (
       objectElements[i].firstChild &&
-      !objectElements[i].firstChild.href.includes("/#") &&
-      !objectElements[i].firstChild.href.includes("/stories/")
+      !objectElements[i].firstChild.href.includes("/#")
     ) {
       objects.push(objectElements[i]);
     }
@@ -159,7 +336,12 @@ const getProfileObjects = (objectElements) => {
   return objects;
 };
 
-const scanHTMLATags = (isSug = false, isSpon = false, isAuto) => {
+const scanHTMLATags = (
+  isSug = false,
+  isSpon = false,
+  isAuto = false,
+  isSub = false
+) => {
   if (!isAuto) {
     const btns = document.querySelectorAll('button[name="FBATLIKE"]');
     for (let i = 0; i < btns.length; i++) {
@@ -170,7 +352,7 @@ const scanHTMLATags = (isSug = false, isSpon = false, isAuto) => {
 
   console.log("facebook-purify:", "scanning");
   const aTags = document.getElementsByTagName("a");
-  const nodes = categorizeNodes(aTags, isSug, isSpon, isAuto);
+  const nodes = categorizeNodes(aTags, isSug, isSpon);
 
   if (isSug) {
     removeSuggestionPosts(nodes.sug);
@@ -178,7 +360,7 @@ const scanHTMLATags = (isSug = false, isSpon = false, isAuto) => {
   if (isSpon) {
     removeSponsoredPosts(nodes.spon);
   }
-  if (isAuto) {
+  if (isAuto && !isSub) {
     likeFriendPosts();
   }
 };
@@ -209,9 +391,9 @@ addEventListener("wheel", async () => {
 
   if (!timer) {
     startTimer(timeout);
-    scanHTMLATags(isSug, isSpon, isAuto);
+    scanHTMLATags(isSug, isSpon, isAuto, true);
     setTimeout(() => {
-      scanHTMLATags(isSug, isSpon, isAuto);
+      scanHTMLATags(isSug, isSpon, isAuto, false);
     }, 1800);
   }
 });
