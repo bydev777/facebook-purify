@@ -188,7 +188,7 @@ getRealProfileLink = (objectNode) => {
 // links: array of <a> tag
 const getLikeBtnsFromObj = async (objs) => {
   var results = [];
-  console.log(objs);
+
   for (let i = 0; i < objs.length; i++) {
     let obj = objs[i];
     let canGo = true;
@@ -315,12 +315,6 @@ const likeFriendPosts = async () => {
     return new Promise((resolve, reject) => {
       setTimeout(() => {
         btn.click();
-        // if (btn.style.border === "1px solid red") {
-        //   btn.style.border = "1px solid blue";
-        // } else {
-        //   btn.style.border = "1px solid red";
-        // }
-        console.log('BTN_CLICK');
         resolve();
       }, timeout);
     });
