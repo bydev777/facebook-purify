@@ -1,7 +1,8 @@
 const canRun = window.location.href.split("/")[3] === "";
 var timer = null;
-var likeTimer = null;
+var isDone = true;
 var totalSugRemoved = 0;
+var likeTimer = null;
 var totalSponRemoved = 0;
 const LIKE_LIMIT = 200;
 const getChildSpanTag = (node) => {
@@ -187,7 +188,7 @@ getRealProfileLink = (objectNode) => {
 // links: array of <a> tag
 const getLikeBtnsFromObj = async (objs) => {
   var results = [];
-
+  console.log(objs);
   for (let i = 0; i < objs.length; i++) {
     let obj = objs[i];
     let canGo = true;
@@ -202,12 +203,14 @@ const getLikeBtnsFromObj = async (objs) => {
         child.setAttribute("name", "FBATLIKE");
         child.value = obj.firstChild.href;
         child.innerText = "Remove Auto Like This Friend";
+
         child.addEventListener("click", async () => {
           const value = id;
           await removeFromAutoLikeList(value);
           child.remove();
           addF();
         });
+
         post.parentElement.prepend(child);
         canGo = true;
       };
@@ -217,12 +220,14 @@ const getLikeBtnsFromObj = async (objs) => {
         child.setAttribute("name", "FBATLIKE");
         child.value = obj.firstChild.href;
         child.innerText = "Auto Like This Friend";
+
         child.addEventListener("click", async () => {
           const value = id;
           await appendToAutoLikeList(value);
           child.remove();
           removeF();
         });
+
         post.parentElement.prepend(child);
         canGo = false;
       };
@@ -238,6 +243,10 @@ const getLikeBtnsFromObj = async (objs) => {
       }
     }
 
+    if (!post.lastChild.firstChild || !post.lastChild.firstChild.firstChild) {
+      return;
+    }
+
     if (post.lastChild.firstChild.firstChild.firstChild && canGo) {
       const children =
         post.lastChild.firstChild.firstChild.firstChild.firstChild.children;
@@ -248,7 +257,6 @@ const getLikeBtnsFromObj = async (objs) => {
 
       const likeLabel = ["Like", "Thích"];
       if (
-        btn.style.transform !== "none" &&
         btn.tagName === "DIV" &&
         likeLabel.includes(btn.getAttribute("aria-label"))
       ) {
@@ -297,17 +305,35 @@ const likeFriendPosts = async () => {
 
   if (!newLiked) {
     console.log("facebook-purify:", "Likes limit exceed!");
+    isDone = true;
     return;
   }
 
   let count = 0;
 
+  const doJob = (timeout, btn) => {
+    return new Promise((resolve, reject) => {
+      setTimeout(() => {
+        btn.click();
+        // if (btn.style.border === "1px solid red") {
+        //   btn.style.border = "1px solid blue";
+        // } else {
+        //   btn.style.border = "1px solid red";
+        // }
+        console.log('BTN_CLICK');
+        resolve();
+      }, timeout);
+    });
+  };
+
+  const likeLabel = ["Like", "Thích"];
   for (let i = 0; i < btns.length; i++) {
     const btn = btns[i];
-    const timeout = randomNum(1500, 3000);
-    setTimeout(() => {
-      btn.click();
-    }, timeout);
+    if (!likeLabel.includes(btn.getAttribute("aria-label"))) {
+      continue;
+    }
+    const timeout = randomNum(1800, 3000);
+    await doJob(timeout, btn);
     count++;
   }
   const total = parseInt(newLiked[1]) + count;
@@ -323,6 +349,7 @@ const likeFriendPosts = async () => {
       " friend posts"
     );
   }
+  isDone = true;
 };
 
 const getProfileObjects = (objectElements) => {
@@ -330,7 +357,8 @@ const getProfileObjects = (objectElements) => {
   for (let i = 0; i < objectElements.length; i++) {
     if (
       objectElements[i].firstChild &&
-      !objectElements[i].firstChild.href.includes("/#")
+      !objectElements[i].firstChild.href.includes("/#") &&
+      objectElements[i].offsetWidth > objectElements[i].offsetHeight
     ) {
       objects.push(objectElements[i]);
     }
@@ -342,7 +370,7 @@ const scanHTMLATags = (
   isSug = false,
   isSpon = false,
   isAuto = false,
-  skipAuto = false,
+  skipAuto = false
 ) => {
   if (!isAuto) {
     const btns = document.querySelectorAll('button[name="FBATLIKE"]');
@@ -387,7 +415,6 @@ const startLikeTimer = (timeout) => {
   }, timeout);
 };
 
-
 const startTimer = (timeout) => {
   timer = setTimeout(() => {
     clearTimeout(timer);
@@ -400,7 +427,7 @@ addEventListener("wheel", async () => {
   const isSpon = await getValue("removeSponsoredPosts");
   const isAuto = await getValue("autoLike");
   const timeout = 2200;
-  const likeTimeout = 3800;
+  const likeTimeout = 2000;
 
   if (!timer) {
     startTimer(timeout);
@@ -410,7 +437,8 @@ addEventListener("wheel", async () => {
     }, 1800);
   }
 
-  if (!likeTimer) {
+  if (isDone && !likeTimer) {
+    isDone = false;
     startLikeTimer(likeTimeout);
     scanHTMLATags(false, false, isAuto, false);
   }
