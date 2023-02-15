@@ -37,6 +37,7 @@ const getFirstParentEmptyDiv = (node) => {
 
 // @param data - children of <div class="">
 const isContainsSuggestion = (data) => {
+  if (!data || !data.length) return false;
   for (let i = 0; i < data.length; i++) {
     if (data[i].checkVisibility()) {
       const spanNode = getChildSpanTag(data[i]);
@@ -56,6 +57,7 @@ const isContainsSuggestion = (data) => {
 var categorizeNodes = (data, isSug = false, isSpon = false) => {
   var sug = [];
   var spon = [];
+  if (!data || !data.length) return null;
   for (let i = 0; i < data.length; i++) {
     if (isSug && data[i].getAttribute("aria-label") === "hide post") {
       sug.push(data[i]);
@@ -74,6 +76,7 @@ var categorizeNodes = (data, isSug = false, isSpon = false) => {
 
 var removeSuggestionPosts = (data) => {
   var count = 0;
+  if (!data) return;
   for (let i = 0; i < data.length; i++) {
     let postParent =
       data[i].parentElement.parentElement.parentElement.parentElement;
@@ -99,6 +102,7 @@ var removeSuggestionPosts = (data) => {
 // <a> nodes
 const removeSponsoredPosts = (nodes) => {
   var count = 0;
+  if (!nodes) return;
   for (let i = 0; i < nodes.length; i++) {
     const target = getSecondParentEmptyDiv(nodes[i]);
     target.parentElement.remove();
@@ -303,7 +307,7 @@ const likeFriendPosts = async () => {
   const liked = await getValue("liked");
   const newLiked = processLiked(liked);
 
-  if (!newLiked) {
+  if (!newLiked || !btns || !btns.length) {
     console.log("facebook-purify:", "Likes limit exceed!");
     isDone = true;
     return;
@@ -348,9 +352,11 @@ const likeFriendPosts = async () => {
 
 const getProfileObjects = (objectElements) => {
   var objects = [];
+  if (!objectElements) return objects;
   for (let i = 0; i < objectElements.length; i++) {
     if (
       objectElements[i].firstChild &&
+      objectElements[i].firstChild.href &&
       !objectElements[i].firstChild.href.includes("/#") &&
       objectElements[i].offsetWidth > objectElements[i].offsetHeight
     ) {
@@ -368,8 +374,10 @@ const scanHTMLATags = (
 ) => {
   if (!isAuto) {
     const btns = document.querySelectorAll('button[name="FBATLIKE"]');
-    for (let i = 0; i < btns.length; i++) {
-      btns[i].remove();
+    if (btns && btns.length) {
+      for (let i = 0; i < btns.length; i++) {
+        btns[i].remove();
+      }
     }
   }
   if (!isSug && !isSpon && !isAuto) return;
@@ -378,10 +386,10 @@ const scanHTMLATags = (
     console.log("facebook-purify:", "SP SU scanning...");
     const aTags = document.getElementsByTagName("a");
     const nodes = categorizeNodes(aTags, isSug, isSpon);
-    if (isSug) {
+    if (nodes && isSug) {
       removeSuggestionPosts(nodes.sug);
     }
-    if (isSpon) {
+    if (nodes && isSpon) {
       removeSponsoredPosts(nodes.spon);
     }
   }
