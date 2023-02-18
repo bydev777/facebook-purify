@@ -1,6 +1,6 @@
 {
   "name": "facebook-purify",
-  "version": "1.0.6",
+  "version": "1.0.7",
   "description": "Purify facebook content",
   "manifest_version": 3,
   "icons": {

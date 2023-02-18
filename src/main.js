@@ -64,7 +64,14 @@ var categorizeNodes = (data, isSug = false, isSpon = false) => {
       continue;
     }
     const href = data[i].getAttribute("href");
-    if (isSpon && href && href.includes("#") && data[i].offsetWidth === 65) {
+
+    if (
+      isSpon &&
+      href &&
+      href.includes("#") &&
+      data[i].offsetWidth > 56 &&
+      data[i].offsetWidth < 77
+    ) {
       spon.push(data[i]);
     }
   }
@@ -428,20 +435,22 @@ addEventListener("wheel", async () => {
   const isSug = await getValue("removeSuggestionPosts");
   const isSpon = await getValue("removeSponsoredPosts");
   const isAuto = await getValue("autoLike");
-  const timeout = 2200;
-  const likeTimeout = 2000;
+  const timeout = 2000;
+  const likeTimeout = 2500;
 
   if (!timer) {
     startTimer(timeout);
     scanHTMLATags(isSug, isSpon, isAuto, true);
     setTimeout(() => {
       scanHTMLATags(isSug, isSpon, isAuto, true);
-    }, 1800);
+    }, 1500);
   }
 
   if (isDone && !likeTimer) {
     isDone = false;
     startLikeTimer(likeTimeout);
-    scanHTMLATags(false, false, isAuto, false);
+    setTimeout(() => {
+      scanHTMLATags(false, false, isAuto, false);
+    }, 200);
   }
 });
