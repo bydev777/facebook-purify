@@ -1,4 +1,3 @@
-const canRun = window.location.href.split("/")[3] === "";
 var timer = null;
 var isDone = true;
 var totalSugRemoved = 0;
@@ -432,6 +431,10 @@ const startTimer = (timeout) => {
 };
 
 addEventListener("wheel", async () => {
+  const canRun = window.location.href.split("/")[3] === "";
+  if (!canRun) {
+    return;
+  }
   const isSug = await getValue("removeSuggestionPosts");
   const isSpon = await getValue("removeSponsoredPosts");
   const isAuto = await getValue("autoLike");
