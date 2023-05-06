@@ -372,6 +372,28 @@ const getProfileObjects = (objectElements) => {
   return objects;
 };
 
+// For reels
+const scanHTMLSpanTags = (isReels) => {
+  if (isReels) {
+    const spanTags = document.getElementsByTagName("span");
+    if (!spanTags || !spanTags.length) return null;
+    for (let i = 0; i < spanTags.length; i++) {
+      const tag = spanTags[i];
+      if (tag.innerText.toLowerCase().includes('reels')) {
+        tag.parentElement.
+        parentElement.
+        parentElement.
+        parentElement.
+        parentElement.
+        parentElement.
+        // style.border = '1px solid red';
+        remove();
+        console.log('facebook-purify: Reels removed!')
+      }
+    }
+  }
+}
+
 const scanHTMLATags = (
   isSug = false,
   isSpon = false,
@@ -438,6 +460,7 @@ addEventListener("wheel", async () => {
   const isSug = await getValue("removeSuggestionPosts");
   const isSpon = await getValue("removeSponsoredPosts");
   const isAuto = await getValue("autoLike");
+  const isReels = await getValue("removeReels");
   const timeout = 2000;
   const likeTimeout = 2500;
 
@@ -446,6 +469,7 @@ addEventListener("wheel", async () => {
     scanHTMLATags(isSug, isSpon, isAuto, true);
     setTimeout(() => {
       scanHTMLATags(isSug, isSpon, isAuto, true);
+      scanHTMLSpanTags(isReels);
     }, 1500);
   }
 

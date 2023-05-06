@@ -2,6 +2,7 @@ const LIKE_LIMIT = 200;
 const inputSugg = document.getElementById("removeSuggestionPosts");
 const inputSpon = document.getElementById("removeSponsoredPosts");
 const inputAutoLike = document.getElementById("autoLike");
+const inputReels = document.getElementById("removeReels");
 const logs = document.getElementById("logs");
 const autoLikeListPre = document.getElementById("autoLikeList");
 const btnViewAutoLikeList = document.getElementById("viewAutoLikeList");
@@ -26,6 +27,7 @@ const init = async () => {
   inputSpon.checked = await getValue("removeSponsoredPosts");
   inputAutoLike.checked = await getValue("autoLike");
   const liked = await getValue("liked");
+  inputReels.checked = await getValue("removeReels")
   if (liked && liked.includes(",")) {
     const val = liked.split(",")[1];
     currentLikes.innerText = val + "/" + LIKE_LIMIT + " likes ";
@@ -71,6 +73,9 @@ inputSpon.addEventListener("change", async () => {
 });
 inputAutoLike.addEventListener("change", async () => {
   await setValue("autoLike", inputAutoLike.checked);
+});
+inputReels.addEventListener("change", async () => {
+  await setValue("removeReels", inputReels.checked);
 });
 btnViewAutoLikeList.addEventListener("click", async () => {
   autoLikeListPre.style.visibility = "visible";
