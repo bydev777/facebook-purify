@@ -19,12 +19,12 @@
 8. At `permissions` tab, turn on all toggles
 ## Demo
 <a href="https://youtu.be/1D4dPaTEiGE" target="_blank"><img src="https://github.com/thogtq/image-storage/blob/a42a479cf13e42bf7f1e2dbf069fbf1a8bd7fb0e/Screenshot_102.png" width="400"></a>
-## Feature
+## Features
 - Remove suggested posts
 - Remove sponsored posts
 - Remove reels and video posts
 - Auto like friend posts
-## Tech
+## Techs
 - [x] pure javascript and DOM manipulation
 - [x] web-ext v7.5.0
 - [x] webextension-polyfill v0.10.0
